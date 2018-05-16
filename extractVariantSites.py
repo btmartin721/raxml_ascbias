@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import argparse
-import itertools
 
 import pandas as pd
 import numpy as np
@@ -11,16 +10,17 @@ from Bio import AlignIO
 
 def Get_Arguments():
 
-    parser = argparse.ArgumentParser(description="extracts variant sites for use with RAxML ascertainment bias correction")
+    parser = argparse.ArgumentParser(description="Extracts variant sites for use with RAxML ascertainment-bias correction")
 
     parser.add_argument("-f", "--file", type=str, required=True, help="Input filename")
     parser.add_argument("-o", "--outfile", type=str, required=False,
-                        help="Output filename; Default = out.txt", nargs="?", default="out.txt")
+                        help="Output filename; Default = out.phy", nargs="?", default="out.phy")
 
     args = parser.parse_args()
 
     return args
 
+# Uses AlignIO to read input PHYLIP file
 def Read_Alignment(infile):
 
     my_id_list = []
@@ -31,10 +31,11 @@ def Read_Alignment(infile):
             seq = record.seq
             my_id_list.append(id)
 
-        matrix = [[char for char in seq] for seq in alignment]
+        matrix = [[char for char in seq] for seq in alignment]  # 2d list
 
     return matrix, my_id_list
 
+# Drops invariable columns from pandas DataFrame
 def drop_invariable_cols(dframe, iupac):
 
     df_copy = dframe.copy()
@@ -43,16 +44,16 @@ def drop_invariable_cols(dframe, iupac):
         for item in val:
             for col in dframe.columns:
 
-                df_copy[col] = df_copy[col].replace(key, item)
+                df_copy[col] = df_copy[col].replace(key, item) # Replace iupac char with all possibilities
 
                 unique_cols = df_copy[col].nunique()
 
-                if unique_cols == 1:
+                if unique_cols == 1: # If site is monomorphic after phasing drop column
                     dframe.drop(col, axis=1, inplace=True)
 
+    return dframe # modified DataFrame
 
-    return dframe
-
+# Dictionary to phase each column in pandas DataFrame
 def ambiguity_codes():
 
     iupac = {
@@ -97,11 +98,11 @@ def write_phylip(dframe, outfile, ids):
 
 arguments = Get_Arguments()
 
-data, ids = Read_Alignment(arguments.file)
+data, ids = Read_Alignment(arguments.file) # Reads PHYLIP file
 
 ambig = ambiguity_codes()
 
-df = pd.DataFrame(data, ids)
+df = pd.DataFrame(data, ids) # Creates pandas DataFrame
 
 iupac_dict = ambiguity_codes()
 
