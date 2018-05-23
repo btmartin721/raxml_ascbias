@@ -2,6 +2,7 @@
 
 import argparse
 import time
+import sys
 
 import pandas as pd
 import numpy as np
@@ -11,11 +12,18 @@ from Bio import AlignIO
 
 def Get_Arguments():
 
-    parser = argparse.ArgumentParser(description="Extracts variant sites for use with RAxML ascertainment-bias correction")
+    parser = argparse.ArgumentParser(description="Does Lewis, Felsenstein, and Stamatkis ascertainment bias corrections for RAxML")
 
-    parser.add_argument("-f", "--file", type=str, required=True, help="Input filename")
+    parser.add_argument("-p", "--file", type=str, required=True, help="Input filename")
     parser.add_argument("-o", "--outfile", type=str, required=False,
-                        help="Output filename; Default = out.phy", nargs="?", default="out.phy")
+                        help="Output file prefix; Default = out", nargs="?", default="out")
+    parser.add_argument("-l", "--lewis", action="store_true",
+                        help="Boolean; Specifies Lewis correction to remove all invariant sites; default=True")
+
+    parser.add_argument("-f", "--felsenstein", action="store_true",
+                        help="Boolean; Specifies Felsenstein correction to count invariant sites; default=False")
+    parser.add_argument("-s", "--stamatkis", action="store_true",
+                        help="Boolean; Specifies Stamatkis correction to count invarant sites with A C G and T; default=False")
 
     args = parser.parse_args()
 
@@ -37,59 +45,70 @@ def Read_Alignment(infile):
     return matrix, my_id_list
 
 # Drops invariable columns from pandas DataFrame
-def filter_invariants(dframe):
+def filter_invariants(dframe, lew, fels, stam, outfile):
 
     tot = len(dframe.columns+1)
 
     bases = ["A","G","C","T"]
 
-    LOG_EVERY_N = 1000
+    total_inv_sites = 0
+    A = 0
+    C = 0
+    G = 0
+    T = 0
+
+    LOG_EVERY_N = 2000
 
     for i in dframe.columns:
 
         current = i+1
         total = tot
-
         progress = (current / tot) * 100
 
         if (i % LOG_EVERY_N) == 0:
             print("Progress: {0:.2f}%".format(round(progress, 2)))
 
-        if not len(check_intersect(bases, dframe[i])) > 1:
+        if not len(check_intersect(bases, dframe[i])) > 1 and not lew and not fels and not stam:
             dframe.drop(i, axis=1, inplace=True)
+        elif not len(check_intersect(bases, dframe[i])) > 1 and lew:
+            dframe.drop(i, axis=1, inplace=True)
+        elif not len(check_intersect(bases, dframe[i])) > 1 and fels:
+            total_inv_sites+=1
+        elif not len(check_intersect(bases, dframe[i])) > 1 and stam:
+            As,Cs,Gs,Ts = stamatkis_correction(dframe, i)
+            if As > 0:
+                A += 1
+            elif Cs > 0:
+                C += 1
+            elif Gs > 0:
+                G += 1
+            elif Ts > 0:
+                T +=1
 
-## Unused code; may implement at some point but needs optimization
-        #for j in product(*[ambiguity_codes(j) for j in dframe[i].values]):
-            #expanded_seq = "".join(j)
-            #if expanded_seq == len(expanded_seq) * expanded_seq[0]:
-                #dframe.drop(i, axis=1, inplace=True)
-                #break
+    write_output(dframe, outfile, ids, total_inv_sites, A, C, G, T)
 
-# Dictionary to phase each column in pandas DataFrame
-# def ambiguity_codes(char):
-#
-#     iupac = {
-#         'A': ["A"],
-#         'G': ["G"],
-#         'C': ["C"],
-#         'T': ["T"],
-#         'N': [""],
-#         '-': [""],
-#         'Y': ["C", "T"],
-#         'R': ["A", "G"],
-#         'W': ["A", "T"],
-#         'S': ["G", "C"],
-#         'K': ["T", "G"],
-#         'M': ["C", "A"],
-#         'B': ["C", "G", "T"],
-#         'D': ["A", "G", "T"],
-#         'H': ["A", "C", "T"],
-#         'V': ["A", "C", "G"]
-#         }
-#
-#
-#     return iupac[char]
+def write_output(dframe, outfile, ids, total, A, C, G, T):
 
+    if not arguments.lewis and not arguments.felsenstein and not arguments.stamatkis:
+        filename = (outfile + ".phy")
+        write_phylip(dframe, filename, ids) # Write DataFrame to PHYLIP outfile
+
+    elif arguments.lewis:
+        filename = (outfile + ".phy")
+        write_phylip(dframe, filename, ids) # Write DataFrame to PHYLIP outfile
+
+    elif arguments.felsenstein:
+        filename = outfile + ".felsenstein"
+        with open(filename, "w") as fout:
+            fout.write(str(total)) # Writes number of invariant sites to outfile
+
+    elif arguments.stamatkis:
+        filename = (outfile + ".stamatkis")
+        with open(filename, "w") as fout:
+            # Write number of invariant sites containing A C G T to outfile
+            fout.write(str(A) + " " + str(C) + " " + str(G) + " " + str(T) + "\n")
+
+# For Lewis correction. Writes only variant sites to output file
 def write_phylip(dframe, outfile, ids):
     df_size = dframe.shape
 
@@ -111,21 +130,39 @@ def write_phylip(dframe, outfile, ids):
 def check_intersect(nt, col):
     return list(set(nt) & set(col))
 
+def stamatkis_correction(dframe, col):
+    A = dframe[col].str.count("A").sum()
+    C = dframe[col].str.count("C").sum()
+    G = dframe[col].str.count("G").sum()
+    T = dframe[col].str.count("T").sum()
+
+    return A,C,G,T
+
 ######################################MAIN######################################################################
 
-start = time.time()
+start = time.time() # time library
 
 arguments = Get_Arguments() # argparse library
 
-data, ids = Read_Alignment(arguments.file) # Reads PHYLIP file using biopython
+# Checks to make sure only one correction opion is used
+if arguments.lewis and arguments.stamatkis:
+    sys.exit("Error: Cannot use more than one type of correction")
+elif arguments.lewis and arguments.felsenstein:
+    sys.exit("Error: Cannot use more than one type of correction")
+elif arguments.felsenstein and arguments.stamatkis:
+    sys.exit("Error: Cannot use more than one type of correction")
+elif arguments.lewis and arguments.felsenstein and arguments.stamatkis:
+    sys.exit("Error: Cannot use more than one type of correction")
+
+data, ids = Read_Alignment(arguments.file) # Reads PHYLIP file using biopython's AlignIO
 
 df = pd.DataFrame(data, ids) # Creates pandas DataFrame
 
 # For each column of pandas DataFrame
-# Drops column if it is invariant
-filter_invariants(df)
-
-write_phylip(df, arguments.outfile, ids) # Write DataFrame to PHYLIP outfile
+# Drops column if it is invariant (lewis)
+# Counts number of invariant sites (Felsenstein)
+# Or Count number of invariant sites containing A C G and T (Stamatkis)
+filter_invariants(df, arguments.lewis, arguments.felsenstein, arguments.stamatkis, arguments.outfile)
 
 # Prints execution time for script
 end = time.time()
