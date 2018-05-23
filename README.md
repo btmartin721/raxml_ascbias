@@ -3,7 +3,8 @@
 Python 3 script for removing or counting invariant sites from a PHYLIP file to use the RAxML 8.2.X ascertainment bias correction  
 The script does the generates output files for the Lewis, Felsenstein, and Stamatkis ascertainment bias corrections  
 
-Lewis Correction: removes sites that are invariant.  **NOTE:** The Lewis correction takes a while to run for large datasets (e.g., ~70 minutes for 250 individuals and 80,000 sites)  
+Lewis Correction: removes sites that are invariant.  **NOTE:** Lewis takes a while to run for large datasets (e.g., ~70 minutes for 250 individuals X 80,000 sites) 
+ 
 Felsenstein Correction: Counts number of invariant sites and writes count to file for input into RAxML  
 Stamatkis Correction: Counts invariant sites consisting of A's, C's, G's, and T's and writes counts to space-delimited file  
 
@@ -25,7 +26,7 @@ TG
 TG  
 ```  
 
-Usage: `./extractVariantSites.py -f <INFILE> -o <OUTFILE; default="out.phy">`  
+Usage: `./extractVariantSites.py -f <INFILE> -o <OUTFILE; default="out">`  
 
 You might need to call the script with python3 to run it. E.g.:  
 
