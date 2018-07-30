@@ -4,6 +4,8 @@ Python 3 script for removing and counting invariant sites from a PHYLIP file to 
 
 The script removes all invariant sites and generates output files for the Felsenstein and Stamatakis ascertainment bias corrections. It now does all three steps in a single execution.  
 
+The program has three python3 dependencies: numpy, pandas, and biopython. You will need the Python 3 versions of each. They can be easily installed using Anaconda or using apt-get or pip.
+
 The script is optimized and way, way faster now. I ran it on a PHYLIP file with 107 individuals and 1,094,776 sites in 273 seconds.  **NOTE: It uses a good bit of memory. On my PC it used ~3 or 4 GB of RAM when using a file with >1,000,000 sites.  
  
 Felsenstein Correction: Counts number of invariant sites and writes the count to file for input into RAxML  
@@ -39,19 +41,6 @@ You might need to call the script with python3 to run it. E.g.:
 -o [Specify output file]  
 ```
 
-The program has three python3 dependencies: numpy, pandas, and biopython  
-You can install them using Anaconda or as follows:  
-
-`sudo apt-get update`  
-`sudo apt-get install python3-numpy`   
-`sudo apt-get install python3-pandas`  
-`sudo apt-get install python3-biopython`  
-
-They can also be installed using pip:  
-
-`sudo apt-get install python3-pip`  
-`sudo pip3 install pandas`  
-etc.  
 
 
 
