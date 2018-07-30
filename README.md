@@ -1,4 +1,4 @@
-# extractVariantSites4raxml  
+# raxml_ascbias  
 
 Python 3 script for removing and counting invariant sites from a PHYLIP file to use for the RAxML 8.2.X ascertainment bias correction  
 
