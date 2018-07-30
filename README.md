@@ -6,7 +6,7 @@ The script removes all invariant sites and generates output files for the Felsen
 
 The script is also optimized and way, way faster now. I ran it on a PHYLIP file with 107 individuals and 1,094,776 sites in 273 seconds.  
 
-**NOTE: It uses a good bit of memory. On my PC it used ~3 or 4 GB of RAM when using a file with >1,000,000 sites.
+**NOTE: It uses a good bit of memory. On my PC it used ~3 or 4 GB of RAM when using a file with >1,000,000 sites.**
 
 ## Dependencies:
 
