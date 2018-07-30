@@ -29,19 +29,9 @@ TG
 TG  
 ```  
 
-Usage: `./ascbias.py -p <PHYLIP_INFILE> -o <OUTFILE; default="out.phy">`  
+## Usage:
+`./ascbias.py -p <PHYLIP_INFILE> -o <OUTFILE; optional (default="out.phy")>`  
 
-You might need to call the script with python3 to run it. E.g.:  
+You might need to call the script with python3 to run it, depending on your system setup. E.g.:  
 
 `python3 ./ascbias.py -p <PHYLIP_INFILE>`  
-
-##Optional argument:  
-
-```
--o [Specify output file]  
-```
-
-
-
-
-
