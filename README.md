@@ -1,12 +1,13 @@
 # extractVariantSites4raxml  
 
-Python 3 script for removing or counting invariant sites from a PHYLIP file to use the RAxML 8.2.X ascertainment bias correction  
-The script does the generates output files for the Lewis, Felsenstein, and Stamatkis ascertainment bias corrections  
+Python 3 script for removing and counting invariant sites from a PHYLIP file to use for the RAxML 8.2.X ascertainment bias correction  
 
-Lewis Correction: removes sites that are invariant.  **NOTE:** Lewis takes a while to run for large datasets (e.g., ~70 minutes for 250 individuals X 80,000 sites) 
+The script removes all invariant sites and generates output files for the Felsenstein and Stamatakis ascertainment bias corrections. It now does all three steps in a single execution.  
+
+The script is optimized and way, way faster now. I ran it on a PHYLIP file with 107 individuals and 1,094,776 sites in 273 seconds.  **NOTE: It uses a good bit of memory. On my PC it used ~3 or 4 GB of RAM when using a file with >1,000,000 sites.  
  
-Felsenstein Correction: Counts number of invariant sites and writes count to file for input into RAxML  
-Stamatkis Correction: Counts invariant sites consisting of A's, C's, G's, and T's and writes counts to space-delimited file  
+Felsenstein Correction: Counts number of invariant sites and writes the count to file for input into RAxML  
+Stamatkis Correction: Counts invariant sites for each base (A C G T) and writes counts to space-delimited file.  
 
 RAxML considers IUPAC characters and gaps to be invariant if phasing them could yield invariant sites. Consider the following example:  
 
@@ -17,7 +18,7 @@ TAG
 T-G  
 ```  
 
-extractVariantSites.py will remove column 2 and yield:  
+ascbias.py will remove column 2 and yield:  
 
 ```  
 AT  
@@ -26,19 +27,16 @@ TG
 TG  
 ```  
 
-Usage: `./extractVariantSites.py -f <INFILE> -o <OUTFILE; default="out">`  
+Usage: `./ascbias.py -p <PHYLIP_INFILE> -o <OUTFILE; default="out.phy">`  
 
 You might need to call the script with python3 to run it. E.g.:  
 
-`python3 ./extractVariantSites.py -f <INFILE>`  
+`python3 ./ascbias.py -p <PHYLIP_INFILE>`  
 
-##Optional arguments:  
+##Optional argument:  
 
 ```
--o [Specify outfile prefix]  
--l [Lewis correction; removes all invariant sites]  
--f [Felsenstein correction; counts invariant sites and writes count to file]  
--s [Stamatkis correction; Counts invariant sites for each base. e.g., A C G T]  
+-o [Specify output file]  
 ```
 
 The program has three python3 dependencies: numpy, pandas, and biopython  
