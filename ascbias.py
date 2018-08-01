@@ -63,6 +63,11 @@ def filter_invariants(dframe):
         # Intersects column_unique with bases list
         intersect = [value for value in bases if value in column_unique]
 
+        # If column contains only ambigous or IUPAC characters
+        # Save the column index for dropping later
+        if not any(value for value in bases if value in column_unique):
+            invariant_lst.append(i)
+
         # If site is invariant (only A, C, G, or T); ignores N's and "-"
         if len(intersect) == 1:
             # Uses collections::Counter to get Stamatakis counts
