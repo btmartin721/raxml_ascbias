@@ -46,7 +46,7 @@ def Read_Alignment(infile):
 # Identifies and drops invariant columns from pandas DataFrame
 def filter_invariants(dframe):
 
-    bases = ["A","G","C","T","R","Y","S","W","K","M","B","D","H","V"]
+    bases = ["A","G","C","T","U","R","Y","S","W","K","M","B","D","H","V"]
 
     # collections::Counter library
     stamatakis_cnt = Counter()
